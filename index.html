@@ -168,9 +168,33 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .chart-container{position:relative;width:100%;height:220px;}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg);}}
+
+/* LOGIN */
+.login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;}
+.login-overlay.hidden{display:none;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:36px 40px;width:340px;text-align:center;}
+.login-logo{font-family:var(--mono);font-size:22px;font-weight:500;margin-bottom:6px;}
+.login-logo span{color:var(--green);}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:28px;}
+.login-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);padding:10px 14px;outline:none;text-align:center;letter-spacing:.15em;margin-bottom:12px;}
+.login-input:focus{border-color:var(--blue);}
+.login-btn{width:100%;background:var(--green);color:#0a1a14;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;}
+.login-btn:hover{filter:brightness(1.1);}
+.login-err{font-size:12px;color:var(--red);margin-top:8px;min-height:18px;}
 </style>
 </head>
 <body>
+
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">fin<span>.</span>ctrl</div>
+    <div class="login-sub">Dashboard financeiro familiar</div>
+    <input class="login-input" id="login-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLogin()"/>
+    <button class="login-btn" onclick="checkLogin()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
 <div class="shell">
 
   <!-- TOPBAR -->
@@ -781,8 +805,43 @@ function sendWA(){
 function setWA(txt){document.getElementById('wa-input').value=txt;document.getElementById('wa-input').focus();}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────
+const PWD_HASH = 'ab24b37ee369bb312666afc6f60816ff95a0187213f00266859a59de635b13e3';
+
+function strToHash(str) {
+  // SHA-256 via SubtleCrypto
+  const buf = new TextEncoder().encode(str);
+  return crypto.subtle.digest('SHA-256', buf).then(b => {
+    return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  });
+}
+
+function checkLogin() {
+  const val = document.getElementById('login-pwd').value;
+  strToHash(val).then(hash => {
+    if (hash === PWD_HASH) {
+      try { sessionStorage.setItem('finctrl_auth','1'); } catch(e) {}
+      document.getElementById('login-overlay').classList.add('hidden');
+    } else {
+      document.getElementById('login-err').textContent = 'Senha incorreta.';
+      document.getElementById('login-pwd').value = '';
+      document.getElementById('login-pwd').focus();
+    }
+  });
+}
+
+function checkAuth() {
+  try {
+    if (sessionStorage.getItem('finctrl_auth') === '1') {
+      document.getElementById('login-overlay').classList.add('hidden');
+    }
+  } catch(e) {}
+}
+
 document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
 updateCats();
+checkAuth();
 loadConfig();
 fetchEntries();
 </script>
