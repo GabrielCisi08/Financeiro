@@ -195,7 +195,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<div class="shell">
+<div class="shell" id="main-shell" style="display:none">
 
   <!-- TOPBAR -->
   <header class="topbar">
@@ -823,6 +823,7 @@ function checkLogin() {
     if (hash === PWD_HASH) {
       try { sessionStorage.setItem('finctrl_auth','1'); } catch(e) {}
       document.getElementById('login-overlay').classList.add('hidden');
+      document.getElementById('main-shell').style.display = 'grid';
     } else {
       document.getElementById('login-err').textContent = 'Senha incorreta.';
       document.getElementById('login-pwd').value = '';
@@ -835,8 +836,15 @@ function checkAuth() {
   try {
     if (sessionStorage.getItem('finctrl_auth') === '1') {
       document.getElementById('login-overlay').classList.add('hidden');
+      document.getElementById('main-shell').style.display = 'grid';
+    } else {
+      document.getElementById('login-overlay').classList.remove('hidden');
+      document.getElementById('main-shell').style.display = 'none';
     }
-  } catch(e) {}
+  } catch(e) {
+    document.getElementById('login-overlay').classList.remove('hidden');
+    document.getElementById('main-shell').style.display = 'none';
+  }
 }
 
 document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
