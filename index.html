@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>fin.ctrl — Dashboard Financeiro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -187,10 +187,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .shell {
     grid-template-columns: 1fr;
     grid-template-rows: 52px 1fr calc(60px + env(safe-area-inset-bottom));
+    height: 100dvh;
   }
   .topbar {
     padding: 0 16px;
     grid-column: 1;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .sidebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
   }
   .topbar .logo { font-size: 14px; }
   .month-nav button { width: 26px; height: 26px; font-size: 14px; }
