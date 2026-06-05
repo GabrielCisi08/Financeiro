@@ -242,12 +242,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .nav-item.active { background: var(--bg3); border-top: 2px solid var(--green); }
 
   /* MAIN */
-  .main { padding: 14px; gap: 14px; }
+  .main { padding: 14px; gap: 14px; width: 100%; box-sizing: border-box; overflow-x: hidden; }
 
   /* METRICS */
   .metrics-grid {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    width: 100%;
   }
   .metric-card { padding: 14px; }
   .metric-value { font-size: 17px; }
