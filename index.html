@@ -49,8 +49,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .config-banner a{color:var(--amber);font-weight:600;}
 
 /* SIDEBAR */
-.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:400;transition:all .15s;border:none;background:none;width:100%;text-align:left;}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:10px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:400;transition:all .15s;border:none;background:none;width:100%;text-align:left;}
 .nav-item svg{opacity:.7;flex-shrink:0;}
 .nav-item:hover{background:var(--bg3);color:var(--text);}
 .nav-item.active{background:var(--bg4);color:var(--text);font-weight:500;}
@@ -290,8 +290,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .chart-container { height: 180px; }
 
 
-  /* Hide config nav on mobile */
+  /* Hide config on mobile, show Reservas instead */
   .nav-item:last-child { display: none; }
+  .nav-item:nth-last-child(2) { display: flex; }
 
   /* LOGIN */
   .login-box { width: 90%; padding: 28px 20px; }
@@ -312,6 +313,34 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .user-filter { gap: 2px; padding: 2px; }
   .uf-btn { font-size: 11px; padding: 3px 7px; }
 }
+
+/* ENVELOPES */
+.env-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; position: relative; overflow: hidden; }
+.env-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.env-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.env-card-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.env-card-user { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.env-card-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; opacity: 0; transition: opacity .15s; }
+.env-card:hover .env-card-del { opacity: 1; }
+.env-card-del:hover { color: var(--red); }
+.env-saldo { font-size: 22px; font-weight: 600; font-family: var(--mono); margin-bottom: 4px; }
+.env-meta-label { font-size: 11px; color: var(--text3); margin-bottom: 10px; }
+.env-pbar { height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.env-pbar-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+.env-pct { font-size: 11px; color: var(--text3); text-align: right; }
+.env-aportes { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; max-height: 120px; overflow-y: auto; }
+.env-aporte-row { display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; color: var(--text2); border-bottom: 0.5px solid var(--border); }
+.env-aporte-row:last-child { border-bottom: none; }
+.env-aporte-val { font-family: var(--mono); color: var(--green); font-weight: 500; }
+.env-aporte-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 0 0 0 6px; opacity: 0; transition: opacity .1s; }
+.env-aporte-row:hover .env-aporte-del { opacity: 1; }
+.env-aporte-del:hover { color: var(--red); }
+
+@media (max-width: 768px) {
+  #panel-envelopes > div:nth-child(2) { grid-template-columns: 1fr !important; }
+  #env-cards { grid-template-columns: 1fr !important; }
+}
+
 </style>
 </head>
 <body>
@@ -371,6 +400,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="nav-item" onclick="showPanel('config',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg style="opacity:0.35;font-size:10px">
       config
+    </button>
+    <button class="nav-item" onclick="showPanel('envelopes',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+      Reservas
     </button>
   </nav>
 
@@ -489,6 +522,93 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
           <div style="margin-top:14px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--text3);line-height:1.7">
             💡 Detecta categorias automaticamente:<br>mercado → Alimentação<br>uber → Transporte<br>farmácia → Saúde
           </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ENVELOPES -->
+    <div id="panel-envelopes" class="panel">
+
+      <!-- METRICS -->
+      <div class="metrics-grid" id="env-metrics"></div>
+
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:20px">
+
+        <!-- FORM -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-title">Novo envelope</div>
+            <div class="form-grid">
+              <div class="form-group form-full">
+                <label>Nome</label>
+                <input type="text" id="env-nome" placeholder="Ex: Viagem, Emergência..."/>
+              </div>
+              <div class="form-group">
+                <label>Meta (R$)</label>
+                <input type="number" id="env-meta" placeholder="0,00" min="0" step="0.01"/>
+              </div>
+              <div class="form-group">
+                <label>Cor</label>
+                <select id="env-cor">
+                  <option value="#5b9cf6">Azul</option>
+                  <option value="#2dd4a0">Verde</option>
+                  <option value="#f5b849">Amarelo</option>
+                  <option value="#f26b4a">Laranja</option>
+                  <option value="#c084fc">Roxo</option>
+                  <option value="#f472b6">Rosa</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quem?</label>
+                <select id="env-usuario">
+                  <option value="Gabriel">Gabriel</option>
+                  <option value="Jessica">Jessica</option>
+                  <option value="Juntos">Juntos</option>
+                </select>
+              </div>
+              <div class="form-full">
+                <button class="btn-add" id="btn-env-add" onclick="addEnvelope()">+ Criar envelope</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Adicionar aporte</div>
+            <div class="form-grid">
+              <div class="form-group form-full">
+                <label>Envelope</label>
+                <select id="aporte-env-id"></select>
+              </div>
+              <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" id="aporte-val" placeholder="0,00" min="0" step="0.01"/>
+              </div>
+              <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="aporte-date"/>
+              </div>
+              <div class="form-group form-full">
+                <label>Descrição (opcional)</label>
+                <input type="text" id="aporte-desc" placeholder="Ex: Depósito de março"/>
+              </div>
+              <div class="form-group">
+                <label>Quem?</label>
+                <select id="aporte-usuario">
+                  <option value="Gabriel">Gabriel</option>
+                  <option value="Jessica">Jessica</option>
+                </select>
+              </div>
+              <div class="form-full">
+                <button class="btn-add" id="btn-aporte-add" onclick="addAporte()">+ Adicionar aporte</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENVELOPE CARDS -->
+        <div>
+          <div id="env-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
         </div>
       </div>
     </div>
@@ -707,6 +827,7 @@ function setFiltro(f, btn) {
   document.querySelectorAll('.uf-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   render();
+  renderEnvelopes();
 }
 
 function filteredByUser(entries) {
@@ -961,6 +1082,160 @@ function sendWA(){
 
 function setWA(txt){document.getElementById('wa-input').value=txt;document.getElementById('wa-input').focus();}
 
+
+// ─── ENVELOPES ────────────────────────────────────────────────────────────
+let envelopes = [];
+let aportes = [];
+
+async function fetchEnvelopes() {
+  if (!SB_URL || !SB_KEY) return;
+  try {
+    const [re, ra] = await Promise.all([
+      fetch(SB_URL + '/rest/v1/envelopes?select=*&order=created_at.asc', { headers: sbHeaders() }),
+      fetch(SB_URL + '/rest/v1/aportes_envelope?select=*&order=data.desc', { headers: sbHeaders() })
+    ]);
+    envelopes = await re.json();
+    aportes = await ra.json();
+    renderEnvelopes();
+  } catch(e) { console.error('Erro ao buscar envelopes', e); }
+}
+
+async function addEnvelope() {
+  const nome = document.getElementById('env-nome').value.trim();
+  const meta = parseFloat(document.getElementById('env-meta').value) || 0;
+  const cor = document.getElementById('env-cor').value;
+  const usuario = document.getElementById('env-usuario').value;
+  if (!nome) { alert('Digite um nome para o envelope.'); return; }
+  const btn = document.getElementById('btn-env-add');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/envelopes', {
+      method: 'POST',
+      headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
+      body: JSON.stringify({ nome, meta, cor, usuario })
+    });
+    const [saved] = await r.json();
+    envelopes.push(saved);
+    document.getElementById('env-nome').value = '';
+    document.getElementById('env-meta').value = '';
+    renderEnvelopes();
+  } catch(e) { alert('Erro ao salvar.'); }
+  btn.disabled = false; btn.textContent = '+ Criar envelope';
+}
+
+async function deleteEnvelope(id) {
+  if (!confirm('Remover este envelope e todos os aportes?')) return;
+  await fetch(SB_URL + '/rest/v1/envelopes?id=eq.' + id, { method: 'DELETE', headers: sbHeaders() });
+  envelopes = envelopes.filter(e => e.id !== id);
+  aportes = aportes.filter(a => a.envelope_id !== id);
+  renderEnvelopes();
+}
+
+async function addAporte() {
+  const envId = parseInt(document.getElementById('aporte-env-id').value);
+  const valor = parseFloat(document.getElementById('aporte-val').value);
+  const data = document.getElementById('aporte-date').value;
+  const descricao = document.getElementById('aporte-desc').value.trim() || null;
+  const usuario = document.getElementById('aporte-usuario').value;
+  if (!envId || !valor || valor <= 0 || !data) { alert('Preencha todos os campos.'); return; }
+  const btn = document.getElementById('btn-aporte-add');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/aportes_envelope', {
+      method: 'POST',
+      headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
+      body: JSON.stringify({ envelope_id: envId, valor, data, descricao, usuario })
+    });
+    const [saved] = await r.json();
+    aportes.unshift(saved);
+    document.getElementById('aporte-val').value = '';
+    document.getElementById('aporte-desc').value = '';
+    renderEnvelopes();
+  } catch(e) { alert('Erro ao salvar.'); }
+  btn.disabled = false; btn.textContent = '+ Adicionar aporte';
+}
+
+async function deleteAporte(id) {
+  await fetch(SB_URL + '/rest/v1/aportes_envelope?id=eq.' + id, { method: 'DELETE', headers: sbHeaders() });
+  aportes = aportes.filter(a => a.id !== id);
+  renderEnvelopes();
+}
+
+function filteredEnvelopes() {
+  if (state.filtroUsuario === 'todos') return envelopes;
+  return envelopes.filter(e => e.usuario === state.filtroUsuario || e.usuario === 'Juntos');
+}
+
+function renderEnvelopes() {
+  const visibleEnvs = filteredEnvelopes();
+
+  // Metrics
+  const totalMeta = visibleEnvs.reduce((s, e) => s + (e.meta || 0), 0);
+  const totalSaldo = visibleEnvs.reduce((s, e) => {
+    const envAportes = aportes.filter(a => a.envelope_id === e.id);
+    return s + envAportes.reduce((ss, a) => ss + parseFloat(a.valor), 0);
+  }, 0);
+  const totalLivre = totalSaldo;
+  const pctGeral = totalMeta > 0 ? Math.min(totalSaldo / totalMeta * 100, 100) : 0;
+
+  document.getElementById('env-metrics').innerHTML = `
+    <div class="metric-card b"><div class="metric-label">Total guardado</div><div class="metric-value b">${fmt(totalSaldo)}</div><div class="metric-sub">${visibleEnvs.length} envelope${visibleEnvs.length !== 1 ? 's' : ''}</div></div>
+    <div class="metric-card a"><div class="metric-label">Total de metas</div><div class="metric-value a">${fmt(totalMeta)}</div><div class="metric-sub">soma das metas</div></div>
+    <div class="metric-card ${totalSaldo >= totalMeta && totalMeta > 0 ? 'g' : 'r'}"><div class="metric-label">Progresso geral</div><div class="metric-value ${totalSaldo >= totalMeta && totalMeta > 0 ? 'g' : 'b'}">${pctGeral.toFixed(1)}%</div><div class="metric-sub">das metas atingidas</div></div>
+    <div class="metric-card g"><div class="metric-label">Falta para metas</div><div class="metric-value g">${fmt(Math.max(totalMeta - totalSaldo, 0))}</div><div class="metric-sub">valor restante</div></div>
+  `;
+
+  // Update aporte select
+  const sel = document.getElementById('aporte-env-id');
+  const prev = sel.value;
+  sel.innerHTML = visibleEnvs.map(e => `<option value="${e.id}">${e.nome} (${e.usuario})</option>`).join('');
+  if (prev) sel.value = prev;
+
+  // Cards
+  const container = document.getElementById('env-cards');
+  if (!visibleEnvs.length) {
+    container.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhum envelope criado ainda.<br>Crie o primeiro usando o formulário ao lado.</div>';
+    return;
+  }
+
+  container.innerHTML = visibleEnvs.map(env => {
+    const envAportes = aportes.filter(a => a.envelope_id === env.id);
+    const saldo = envAportes.reduce((s, a) => s + parseFloat(a.valor), 0);
+    const meta = env.meta || 0;
+    const pct = meta > 0 ? Math.min(saldo / meta * 100, 100) : 0;
+    const falta = Math.max(meta - saldo, 0);
+    const userColor = env.usuario === 'Gabriel' ? '#5b9cf6' : env.usuario === 'Jessica' ? '#f5b849' : '#2dd4a0';
+
+    const aportesHtml = envAportes.length ? envAportes.slice(0, 8).map(a => `
+      <div class="env-aporte-row">
+        <span>${a.descricao || 'Aporte'} · ${new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR')} · <span style="font-size:10px;color:${userColor}">${a.usuario}</span></span>
+        <span style="display:flex;align-items:center;gap:4px">
+          <span class="env-aporte-val">+${fmt(a.valor)}</span>
+          <button class="env-aporte-del" onclick="deleteAporte(${a.id})" title="Remover">×</button>
+        </span>
+      </div>`).join('') : '<div style="font-size:11px;color:var(--text3);padding:4px 0">Nenhum aporte ainda</div>';
+
+    return `
+      <div class="env-card" style="border-top-color:${env.cor}">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${env.cor}"></div>
+        <div class="env-card-header">
+          <div>
+            <div class="env-card-name">${env.nome}</div>
+            <div class="env-card-user" style="color:${userColor}">${env.usuario}</div>
+          </div>
+          <button class="env-card-del" onclick="deleteEnvelope(${env.id})" title="Remover envelope">×</button>
+        </div>
+        <div class="env-saldo" style="color:${env.cor}">${fmt(saldo)}</div>
+        ${meta > 0 ? `
+          <div class="env-meta-label">Meta: ${fmt(meta)} · Falta: ${fmt(falta)}</div>
+          <div class="env-pbar"><div class="env-pbar-fill" style="width:${pct.toFixed(1)}%;background:${env.cor}"></div></div>
+          <div class="env-pct">${pct.toFixed(1)}%${pct >= 100 ? ' 🎉' : ''}</div>
+        ` : '<div class="env-meta-label">Sem meta definida</div>'}
+        <div class="env-aportes">${aportesHtml}</div>
+      </div>`;
+  }).join('');
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────
@@ -1005,10 +1280,12 @@ function checkAuth() {
 }
 
 document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('aporte-date').value=new Date().toISOString().split('T')[0];
 updateCats();
 checkAuth();
 loadConfig();
 fetchEntries();
+fetchEnvelopes();
 </script>
 </body>
 </html>
