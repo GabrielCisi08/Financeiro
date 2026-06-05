@@ -522,89 +522,56 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <!-- ENVELOPES -->
     <div id="panel-envelopes" class="panel">
 
-      <!-- METRICS -->
+      <!-- SALDO DISPONÍVEL -->
       <div class="metrics-grid" id="env-metrics"></div>
 
-      <div style="display:grid;grid-template-columns:320px 1fr;gap:20px">
-
-        <!-- FORM -->
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div class="card">
-            <div class="card-title">Novo envelope</div>
-            <div class="form-grid">
-              <div class="form-group form-full">
-                <label>Nome</label>
-                <input type="text" id="env-nome" placeholder="Ex: Viagem, Emergência..."/>
-              </div>
-              <div class="form-group">
-                <label>Meta (R$)</label>
-                <input type="number" id="env-meta" placeholder="0,00" min="0" step="0.01"/>
-              </div>
-              <div class="form-group">
-                <label>Cor</label>
-                <select id="env-cor">
-                  <option value="#5b9cf6">Azul</option>
-                  <option value="#2dd4a0">Verde</option>
-                  <option value="#f5b849">Amarelo</option>
-                  <option value="#f26b4a">Laranja</option>
-                  <option value="#c084fc">Roxo</option>
-                  <option value="#f472b6">Rosa</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Quem?</label>
-                <select id="env-usuario">
-                  <option value="Gabriel">Gabriel</option>
-                  <option value="Jessica">Jessica</option>
-                  <option value="Juntos">Juntos</option>
-                </select>
-              </div>
-              <div class="form-full">
-                <button class="btn-add" id="btn-env-add" onclick="addEnvelope()">+ Criar envelope</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Adicionar aporte</div>
-            <div class="form-grid">
-              <div class="form-group form-full">
-                <label>Envelope</label>
-                <select id="aporte-env-id"></select>
-              </div>
-              <div class="form-group">
-                <label>Valor (R$)</label>
-                <input type="number" id="aporte-val" placeholder="0,00" min="0" step="0.01"/>
-              </div>
-              <div class="form-group">
-                <label>Data</label>
-                <input type="date" id="aporte-date"/>
-              </div>
-              <div class="form-group form-full">
-                <label>Descrição (opcional)</label>
-                <input type="text" id="aporte-desc" placeholder="Ex: Depósito de março"/>
-              </div>
-              <div class="form-group">
-                <label>Quem?</label>
-                <select id="aporte-usuario">
-                  <option value="Gabriel">Gabriel</option>
-                  <option value="Jessica">Jessica</option>
-                </select>
-              </div>
-              <div class="form-full">
-                <button class="btn-add" id="btn-aporte-add" onclick="addAporte()">+ Adicionar aporte</button>
-              </div>
-            </div>
-          </div>
+      <!-- CRIAR ENVELOPE -->
+      <div class="card" id="env-create-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+          <div class="card-title" style="margin-bottom:0">Envelopes</div>
+          <button class="btn-add" style="width:auto;padding:6px 14px;font-size:12px" onclick="toggleEnvForm()">+ Novo envelope</button>
         </div>
-
-        <!-- ENVELOPE CARDS -->
-        <div>
-          <div id="env-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
+        <div id="env-form" style="display:none;margin-top:16px">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nome</label>
+              <input type="text" id="env-nome" placeholder="Ex: Viagem, Emergência..."/>
+            </div>
+            <div class="form-group">
+              <label>Meta (R$)</label>
+              <input type="number" id="env-meta" placeholder="0,00" min="0" step="0.01"/>
+            </div>
+            <div class="form-group">
+              <label>Cor</label>
+              <select id="env-cor">
+                <option value="#5b9cf6">Azul</option>
+                <option value="#2dd4a0">Verde</option>
+                <option value="#f5b849">Amarelo</option>
+                <option value="#f26b4a">Laranja</option>
+                <option value="#c084fc">Roxo</option>
+                <option value="#f472b6">Rosa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Dono</label>
+              <select id="env-usuario">
+                <option value="Gabriel">Gabriel</option>
+                <option value="Jessica">Jessica</option>
+                <option value="Juntos">Juntos</option>
+              </select>
+            </div>
+            <div class="form-full" style="display:flex;gap:8px">
+              <button class="btn-add" id="btn-env-add" onclick="addEnvelope()" style="flex:1">Criar</button>
+              <button onclick="toggleEnvForm()" style="flex:1;background:var(--bg4);color:var(--text2);border:none;border-radius:8px;padding:10px;font-size:13px;cursor:pointer">Cancelar</button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
+      <!-- ENVELOPE CARDS -->
+      <div id="env-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px"></div>
+
+    </div>
     <!-- CONFIG -->
     <div id="panel-config" class="panel">
       <div class="config-card">
@@ -1126,6 +1093,28 @@ function setWA(txt){document.getElementById('wa-input').value=txt;document.getEl
 let envelopes = [];
 let aportes = [];
 
+// Saldo acumulado de todos os meses (receita - despesa total histórico)
+function calcSaldoAcumulado() {
+  // Use ALL entries regardless of filter
+  const allEntries = state.entries;
+  const inc = allEntries.filter(e => e.type === 'income').reduce((s,e) => s+e.val, 0);
+  const exp = allEntries.filter(e => e.type === 'expense').reduce((s,e) => s+e.val, 0);
+  return Math.max(inc - exp, 0);
+}
+
+// Total já alocado em envelopes
+function calcTotalAlocado() {
+  return envelopes.reduce((s, env) => {
+    const envAportes = aportes.filter(a => a.envelope_id === env.id);
+    return s + envAportes.reduce((ss, a) => ss + parseFloat(a.valor), 0);
+  }, 0);
+}
+
+function toggleEnvForm() {
+  const f = document.getElementById('env-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
 async function fetchEnvelopes() {
   if (!SB_URL || !SB_KEY) return;
   try {
@@ -1136,7 +1125,7 @@ async function fetchEnvelopes() {
     envelopes = await re.json();
     aportes = await ra.json();
     renderEnvelopes();
-  } catch(e) { console.error('Erro ao buscar envelopes', e); }
+  } catch(e) { console.error('Erro envelopes', e); }
 }
 
 async function addEnvelope() {
@@ -1144,7 +1133,7 @@ async function addEnvelope() {
   const meta = parseFloat(document.getElementById('env-meta').value) || 0;
   const cor = document.getElementById('env-cor').value;
   const usuario = document.getElementById('env-usuario').value;
-  if (!nome) { alert('Digite um nome para o envelope.'); return; }
+  if (!nome) { alert('Digite um nome.'); return; }
   const btn = document.getElementById('btn-env-add');
   btn.disabled = true; btn.textContent = 'Salvando...';
   try {
@@ -1157,9 +1146,10 @@ async function addEnvelope() {
     envelopes.push(saved);
     document.getElementById('env-nome').value = '';
     document.getElementById('env-meta').value = '';
+    toggleEnvForm();
     renderEnvelopes();
   } catch(e) { alert('Erro ao salvar.'); }
-  btn.disabled = false; btn.textContent = '+ Criar envelope';
+  btn.disabled = false; btn.textContent = 'Criar';
 }
 
 async function deleteEnvelope(id) {
@@ -1170,28 +1160,54 @@ async function deleteEnvelope(id) {
   renderEnvelopes();
 }
 
-async function addAporte() {
-  const envId = parseInt(document.getElementById('aporte-env-id').value);
-  const valor = parseFloat(document.getElementById('aporte-val').value);
-  const data = document.getElementById('aporte-date').value;
-  const descricao = document.getElementById('aporte-desc').value.trim() || null;
-  const usuario = document.getElementById('aporte-usuario').value;
-  if (!envId || !valor || valor <= 0 || !data) { alert('Preencha todos os campos.'); return; }
-  const btn = document.getElementById('btn-aporte-add');
-  btn.disabled = true; btn.textContent = 'Salvando...';
+async function aportar(envId, cor) {
+  const disponivel = calcSaldoAcumulado() - calcTotalAlocado();
+  const input = document.getElementById('aporte-input-' + envId);
+  const val = parseFloat(input.value);
+  if (!val || val <= 0) { input.focus(); return; }
+  if (val > disponivel + 0.01) {
+    alert(`Saldo disponível insuficiente. Você tem ${fmt(disponivel)} para alocar.`);
+    return;
+  }
+  const btn = document.getElementById('aporte-btn-' + envId);
+  btn.disabled = true; btn.textContent = '...';
+  const today = new Date().toISOString().split('T')[0];
   try {
     const r = await fetch(SB_URL + '/rest/v1/aportes_envelope', {
       method: 'POST',
       headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
-      body: JSON.stringify({ envelope_id: envId, valor, data, descricao, usuario })
+      body: JSON.stringify({ envelope_id: envId, valor: val, data: today, descricao: 'Aporte', usuario: usuarioLogado })
     });
     const [saved] = await r.json();
     aportes.unshift(saved);
-    document.getElementById('aporte-val').value = '';
-    document.getElementById('aporte-desc').value = '';
+    input.value = '';
     renderEnvelopes();
-  } catch(e) { alert('Erro ao salvar.'); }
-  btn.disabled = false; btn.textContent = '+ Adicionar aporte';
+  } catch(e) { alert('Erro ao aportar.'); }
+  btn.disabled = false; btn.textContent = '+';
+}
+
+async function retirar(envId) {
+  const input = document.getElementById('retirar-input-' + envId);
+  const val = parseFloat(input.value);
+  if (!val || val <= 0) { input.focus(); return; }
+  const envAportes = aportes.filter(a => a.envelope_id === envId);
+  const saldo = envAportes.reduce((s,a) => s + parseFloat(a.valor), 0);
+  if (val > saldo + 0.01) { alert(`Saldo do envelope insuficiente (${fmt(saldo)}).`); return; }
+  const btn = document.getElementById('retirar-btn-' + envId);
+  btn.disabled = true; btn.textContent = '...';
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/aportes_envelope', {
+      method: 'POST',
+      headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
+      body: JSON.stringify({ envelope_id: envId, valor: -val, data: today, descricao: 'Retirada', usuario: usuarioLogado })
+    });
+    const [saved] = await r.json();
+    aportes.unshift(saved);
+    input.value = '';
+    renderEnvelopes();
+  } catch(e) { alert('Erro ao retirar.'); }
+  btn.disabled = false; btn.textContent = '-';
 }
 
 async function deleteAporte(id) {
@@ -1206,71 +1222,79 @@ function filteredEnvelopes() {
 }
 
 function renderEnvelopes() {
+  const saldoAcum = calcSaldoAcumulado();
+  const totalAlocado = calcTotalAlocado();
+  const disponivel = Math.max(saldoAcum - totalAlocado, 0);
   const visibleEnvs = filteredEnvelopes();
 
   // Metrics
-  const totalMeta = visibleEnvs.reduce((s, e) => s + (e.meta || 0), 0);
-  const totalSaldo = visibleEnvs.reduce((s, e) => {
-    const envAportes = aportes.filter(a => a.envelope_id === e.id);
-    return s + envAportes.reduce((ss, a) => ss + parseFloat(a.valor), 0);
-  }, 0);
-  const totalLivre = totalSaldo;
-  const pctGeral = totalMeta > 0 ? Math.min(totalSaldo / totalMeta * 100, 100) : 0;
-
   document.getElementById('env-metrics').innerHTML = `
-    <div class="metric-card b"><div class="metric-label">Total guardado</div><div class="metric-value b">${fmt(totalSaldo)}</div><div class="metric-sub">${visibleEnvs.length} envelope${visibleEnvs.length !== 1 ? 's' : ''}</div></div>
-    <div class="metric-card a"><div class="metric-label">Total de metas</div><div class="metric-value a">${fmt(totalMeta)}</div><div class="metric-sub">soma das metas</div></div>
-    <div class="metric-card ${totalSaldo >= totalMeta && totalMeta > 0 ? 'g' : 'r'}"><div class="metric-label">Progresso geral</div><div class="metric-value ${totalSaldo >= totalMeta && totalMeta > 0 ? 'g' : 'b'}">${pctGeral.toFixed(1)}%</div><div class="metric-sub">das metas atingidas</div></div>
-    <div class="metric-card g"><div class="metric-label">Falta para metas</div><div class="metric-value g">${fmt(Math.max(totalMeta - totalSaldo, 0))}</div><div class="metric-sub">valor restante</div></div>
+    <div class="metric-card b"><div class="metric-label">Saldo acumulado</div><div class="metric-value b">${fmt(saldoAcum)}</div><div class="metric-sub">total poupado no período</div></div>
+    <div class="metric-card a"><div class="metric-label">Alocado em reservas</div><div class="metric-value a">${fmt(totalAlocado)}</div><div class="metric-sub">distribuído nos envelopes</div></div>
+    <div class="metric-card ${disponivel > 0 ? 'g' : 'r'}"><div class="metric-label">Disponível para alocar</div><div class="metric-value ${disponivel > 0 ? 'g' : 'r'}">${fmt(disponivel)}</div><div class="metric-sub">saldo − alocado</div></div>
+    <div class="metric-card g"><div class="metric-label">Envelopes ativos</div><div class="metric-value g">${visibleEnvs.length}</div><div class="metric-sub">reservas criadas</div></div>
   `;
 
-  // Update aporte select
-  const sel = document.getElementById('aporte-env-id');
-  const prev = sel.value;
-  sel.innerHTML = visibleEnvs.map(e => `<option value="${e.id}">${e.nome} (${e.usuario})</option>`).join('');
-  if (prev) sel.value = prev;
-
-  // Cards
   const container = document.getElementById('env-cards');
   if (!visibleEnvs.length) {
-    container.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhum envelope criado ainda.<br>Crie o primeiro usando o formulário ao lado.</div>';
+    container.innerHTML = '<div class="empty">Nenhum envelope criado. Clique em "+ Novo envelope".</div>';
     return;
   }
 
   container.innerHTML = visibleEnvs.map(env => {
     const envAportes = aportes.filter(a => a.envelope_id === env.id);
-    const saldo = envAportes.reduce((s, a) => s + parseFloat(a.valor), 0);
+    const saldo = envAportes.reduce((s,a) => s + parseFloat(a.valor), 0);
     const meta = env.meta || 0;
     const pct = meta > 0 ? Math.min(saldo / meta * 100, 100) : 0;
     const falta = Math.max(meta - saldo, 0);
     const userColor = env.usuario === 'Gabriel' ? '#5b9cf6' : env.usuario === 'Jessica' ? '#f5b849' : '#2dd4a0';
 
-    const aportesHtml = envAportes.length ? envAportes.slice(0, 8).map(a => `
+    const histHtml = envAportes.slice(0,5).map(a => `
       <div class="env-aporte-row">
-        <span>${a.descricao || 'Aporte'} · ${new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR')} · <span style="font-size:10px;color:${userColor}">${a.usuario}</span></span>
-        <span style="display:flex;align-items:center;gap:4px">
-          <span class="env-aporte-val">+${fmt(a.valor)}</span>
-          <button class="env-aporte-del" onclick="deleteAporte(${a.id})" title="Remover">×</button>
+        <span style="color:${parseFloat(a.valor)>=0?'var(--text2)':'var(--red)'}">
+          ${parseFloat(a.valor)>=0?'↑':'↓'} ${a.descricao||'Aporte'} · ${new Date(a.data+'T12:00:00').toLocaleDateString('pt-BR')}
         </span>
-      </div>`).join('') : '<div style="font-size:11px;color:var(--text3);padding:4px 0">Nenhum aporte ainda</div>';
+        <span style="display:flex;align-items:center;gap:4px">
+          <span class="env-aporte-val" style="color:${parseFloat(a.valor)>=0?'var(--green)':'var(--red)'}">
+            ${parseFloat(a.valor)>=0?'+':''}${fmt(parseFloat(a.valor))}
+          </span>
+          <button class="env-aporte-del" onclick="deleteAporte(${a.id})">×</button>
+        </span>
+      </div>`).join('');
 
     return `
-      <div class="env-card" style="border-top-color:${env.cor}">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${env.cor}"></div>
+      <div class="env-card" style="border-top:3px solid ${env.cor}">
         <div class="env-card-header">
           <div>
             <div class="env-card-name">${env.nome}</div>
             <div class="env-card-user" style="color:${userColor}">${env.usuario}</div>
           </div>
-          <button class="env-card-del" onclick="deleteEnvelope(${env.id})" title="Remover envelope">×</button>
+          <button class="env-card-del" onclick="deleteEnvelope(${env.id})">×</button>
         </div>
+
         <div class="env-saldo" style="color:${env.cor}">${fmt(saldo)}</div>
         ${meta > 0 ? `
           <div class="env-meta-label">Meta: ${fmt(meta)} · Falta: ${fmt(falta)}</div>
           <div class="env-pbar"><div class="env-pbar-fill" style="width:${pct.toFixed(1)}%;background:${env.cor}"></div></div>
           <div class="env-pct">${pct.toFixed(1)}%${pct >= 100 ? ' 🎉' : ''}</div>
         ` : '<div class="env-meta-label">Sem meta definida</div>'}
-        <div class="env-aportes">${aportesHtml}</div>
+
+        <!-- APORTAR / RETIRAR inline -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+          <div style="display:flex;gap:4px">
+            <input id="aporte-input-${env.id}" type="number" min="0" step="0.01" placeholder="Valor" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;min-width:0"/>
+            <button id="aporte-btn-${env.id}" onclick="aportar(${env.id},'${env.cor}')" style="background:var(--green);color:#0a1a14;border:none;border-radius:6px;width:28px;font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0">+</button>
+          </div>
+          <div style="display:flex;gap:4px">
+            <input id="retirar-input-${env.id}" type="number" min="0" step="0.01" placeholder="Valor" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;min-width:0"/>
+            <button id="retirar-btn-${env.id}" onclick="retirar(${env.id})" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red-dim);border-radius:6px;width:28px;font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0">−</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;padding:0 2px">
+          <span>aportar</span><span>retirar</span>
+        </div>
+
+        ${envAportes.length ? `<div class="env-aportes">${histHtml}</div>` : ''}
       </div>`;
   }).join('');
 }
