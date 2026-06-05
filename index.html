@@ -205,7 +205,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
   /* TOPBAR */
   .topbar-center { display: none !important; }
-  .topbar-month-mobile { display: flex !important; }
   .topbar {
     order: 1 !important;
     flex-shrink: 0 !important;
@@ -402,11 +401,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="month-nav">
         <button onclick="changeMonth(-1)">&#8249;</button>
         <span class="month-label" id="month-label"></span>
-        <button onclick="changeMonth(1)">&#8250;</button>
-      </div>
-      <div class="month-nav topbar-month-mobile">
-        <button onclick="changeMonth(-1)">&#8249;</button>
-        <span id="month-label-mobile" class="month-label"></span>
         <button onclick="changeMonth(1)">&#8250;</button>
       </div>
       <select class="uf-select" id="uf-mobile" onchange="setFiltroSelect(this)">
@@ -900,8 +894,6 @@ function monthTotals(y,m){
 // ─── RENDER ───────────────────────────────────────────────────────────────
 function render(){
   document.getElementById('month-label').textContent=MONTHS[state.month]+' '+state.year;
-  const ml2=document.getElementById('month-label-mobile');
-  if(ml2) ml2.textContent=MONTHS[state.month]+' '+state.year;
   renderMetrics();renderCats();renderList();renderAnnual();renderCharts();
 }
 
