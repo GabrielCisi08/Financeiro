@@ -737,7 +737,8 @@ async function fetchEntries(){
     const data=await r.json();
     state.entries=data.map(d=>({id:d.id,type:d.type,cat:d.cat,desc:d.descricao,val:parseFloat(d.val),date:d.date,usuario:d.usuario||'Gabriel'}));
     setSyncStatus('ok','sincronizado');
-    document.getElementById('cfg-banner').classList.add('hidden');
+    const b=document.getElementById('cfg-banner');
+    if(b) b.classList.add('hidden');
     render();
     return true;
   }catch(e){
