@@ -684,17 +684,21 @@ let barChart=null,lineChart=null;
 
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────
 function loadConfig(){
+  const DEFAULT_URL = 'https://okqcihiypzcwnwtkufwn.supabase.co';
+  const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rcWNpaGl5cHpjd253dGt1ZnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDYxMTEsImV4cCI6MjA5NjA4MjExMX0.VV62F9IpKmGhRiGNMjOswdWriWc0qFl0KMNh7CsMjeU';
   try{
-    SB_URL=localStorage.getItem('sb_url')||'https://okqcihiypzcwnwtkufwn.supabase.co';
-    SB_KEY=localStorage.getItem('sb_key')||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rcWNpaGl5cHpjd253dGt1ZnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDYxMTEsImV4cCI6MjA5NjA4MjExMX0.VV62F9IpKmGhRiGNMjOswdWriWc0qFl0KMNh7CsMjeU';
-    if(SB_URL) document.getElementById('cfg-url').value=SB_URL;
-    if(SB_KEY) document.getElementById('cfg-key').value=SB_KEY;
-    // Hide banner since credentials are already embedded
-    if(SB_URL && SB_KEY){
-      const banner = document.getElementById('cfg-banner');
-      if(banner) banner.classList.add('hidden');
-    }
-  }catch(e){}
+    const savedUrl = localStorage.getItem('sb_url');
+    const savedKey = localStorage.getItem('sb_key');
+    SB_URL = (savedUrl && savedUrl.length > 10) ? savedUrl : DEFAULT_URL;
+    SB_KEY = (savedKey && savedKey.length > 10) ? savedKey : DEFAULT_KEY;
+    const urlEl = document.getElementById('cfg-url');
+    const keyEl = document.getElementById('cfg-key');
+    if(urlEl) urlEl.value = SB_URL;
+    if(keyEl) keyEl.value = SB_KEY;
+  }catch(e){
+    SB_URL = DEFAULT_URL;
+    SB_KEY = DEFAULT_KEY;
+  }
 }
 
 function saveConfig(){
