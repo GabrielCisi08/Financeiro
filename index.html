@@ -290,9 +290,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .chart-container { height: 180px; }
 
 
-  /* Hide config on mobile, show Reservas instead */
+  /* Hide config on mobile */
   .nav-item:last-child { display: none; }
-  .nav-item:nth-last-child(2) { display: flex; }
 
   /* LOGIN */
   .login-box { width: 90%; padding: 28px 20px; }
@@ -315,7 +314,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 }
 
 /* ENVELOPES */
-.env-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; position: relative; overflow: hidden; }
+#panel-envelopes .card { overflow: hidden; min-width: 0; }
+#panel-envelopes .form-grid { width: 100%; }
+#panel-envelopes input, #panel-envelopes select { width: 100%; min-width: 0; box-sizing: border-box; }
+.env-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; position: relative; overflow: hidden; min-width: 0; }
 .env-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
 .env-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
 .env-card-name { font-size: 14px; font-weight: 600; color: var(--text); }
@@ -338,7 +340,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 @media (max-width: 768px) {
   #panel-envelopes > div:nth-child(2) { grid-template-columns: 1fr !important; }
+  #panel-envelopes > div:nth-child(2) > div { min-width: 0; width: 100%; overflow: hidden; }
   #env-cards { grid-template-columns: 1fr !important; }
+  #panel-envelopes .form-grid { grid-template-columns: 1fr; }
+  #panel-envelopes .form-grid .form-group { min-width: 0; width: 100%; }
 }
 
 </style>
@@ -391,6 +396,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Visão Anual
     </button>
+    <button class="nav-item" onclick="showPanel('envelopes',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+      Reservas
+    </button>
     <div class="nav-section">Automação</div>
     <button class="nav-item" onclick="showPanel('whatsapp',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -400,10 +409,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="nav-item" onclick="showPanel('config',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg style="opacity:0.35;font-size:10px">
       config
-    </button>
-    <button class="nav-item" onclick="showPanel('envelopes',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-      Reservas
     </button>
   </nav>
 
@@ -1005,6 +1010,7 @@ function showPanel(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   setTimeout(renderCharts,50);
+  if(name==='envelopes') fetchEnvelopes();
 }
 
 // ─── WHATSAPP PARSER ──────────────────────────────────────────────────────
