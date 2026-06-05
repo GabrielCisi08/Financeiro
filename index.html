@@ -52,7 +52,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .config-banner a{color:var(--amber);font-weight:600;}
 
 /* SIDEBAR */
-.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:10px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:10px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;min-height:0;}
 .nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:400;transition:all .15s;border:none;background:none;width:100%;text-align:left;}
 .nav-item svg{opacity:.7;flex-shrink:0;}
 .nav-item:hover{background:var(--bg3);color:var(--text);}
@@ -218,8 +218,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .topbar .logo { font-size: 14px; }
   .month-nav button { width: 26px; height: 26px; font-size: 14px; }
   .month-label { font-size: 12px; min-width: 100px; }
-  .sync-dot { display: none; }
-  .sync-label { display: none; }
+  .sync-dot { display: none !important; }
+  .sync-label { display: none !important; }
+  .sidebar-sync { display: none !important; }
 
   /* FILTER */
   .user-filter { display: none !important; }
@@ -359,6 +360,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .user-avatar { width: 28px !important; height: 28px !important; font-size: 12px !important; }
 }
 
+
+/* SIDEBAR SYNC */
+.sidebar-sync {
+  margin-top: auto;
+  padding: 12px 10px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+}
+
 </style>
 </head>
 <body>
@@ -402,8 +414,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <span class="month-label" id="month-label-mobile"></span>
         <button onclick="changeMonth(1)">&#8250;</button>
       </div>
-      <span class="sync-dot" id="sync-dot"></span>
-      <span class="sync-label" id="sync-label">verificando...</span>
       <div class="user-badge" id="user-badge" onclick="confirmLogout()"></div>
     </div>
   </header>
