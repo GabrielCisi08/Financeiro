@@ -1364,13 +1364,17 @@ function checkAuth() {
       document.getElementById('main-shell').style.display = 'none';
     }
   } catch(e) {
-    document.getElementById('login-overlay').classList.remove('hidden');
-    document.getElementById('main-shell').style.display = 'none';
+    const lo = document.getElementById('login-overlay');
+    const ms = document.getElementById('main-shell');
+    if(lo) lo.classList.remove('hidden');
+    if(ms) ms.style.display = 'none';
   }
 }
 
-document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
-document.getElementById('aporte-date').value=new Date().toISOString().split('T')[0];
+const eDateEl = document.getElementById('e-date');
+if(eDateEl) eDateEl.value = new Date().toISOString().split('T')[0];
+const aDateEl = document.getElementById('aporte-date');
+if(aDateEl) aDateEl.value = new Date().toISOString().split('T')[0];
 // Pre-select logged user in forms
 function syncUserForms(){
   const sel=document.getElementById('e-usuario');
