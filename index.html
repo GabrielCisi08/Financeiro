@@ -31,7 +31,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .logo span{color:var(--green);}
 .topbar-center{flex:1;display:flex;align-items:center;justify-content:center;gap:12px;}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.topbar-month-mobile{display:none;}
+.topbar-month-mobile{display:none !important;}
 .month-nav{display:flex;align-items:center;gap:6px;}
 .month-nav button{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .month-nav button:hover{background:var(--bg4);color:var(--text);}
@@ -397,13 +397,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <button class="uf-btn" onclick="setFiltro('Gabriel',this)">Gabriel</button>
         <button class="uf-btn" onclick="setFiltro('Jessica',this)">Jessica</button>
       </div>
+    </div>
+    <div class="topbar-right">
       <div class="month-nav">
         <button onclick="changeMonth(-1)">&#8249;</button>
         <span class="month-label" id="month-label"></span>
         <button onclick="changeMonth(1)">&#8250;</button>
       </div>
-    </div>
-    <div class="topbar-right">
       <div class="month-nav topbar-month-mobile">
         <button onclick="changeMonth(-1)">&#8249;</button>
         <span id="month-label-mobile" class="month-label"></span>
