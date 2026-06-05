@@ -814,10 +814,10 @@ function fmt(v){return'R$\u00a0'+Math.abs(v).toLocaleString('pt-BR',{minimumFrac
 function fmtK(v){return Math.abs(v)>=1000?'R$\u00a0'+(v/1000).toFixed(1).replace('.',',')+'k':'R$\u00a0'+Math.abs(v).toFixed(0);}
 function nowTime(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 
-function setSyncStatus(state,label){
+function setSyncStatus(s,label){
   const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
-  dot.className='sync-dot '+state;
-  lbl.textContent=label;
+  if(dot) dot.className='sync-dot '+s;
+  if(lbl) lbl.textContent=label;
 }
 
 function setFiltro(f, btn) {
@@ -1266,6 +1266,8 @@ function checkLogin() {
       try { sessionStorage.setItem('finctrl_auth','1'); } catch(e) {}
       document.getElementById('login-overlay').classList.add('hidden');
       document.getElementById('main-shell').style.display = 'grid';
+      fetchEntries();
+      fetchEnvelopes();
     } else {
       document.getElementById('login-err').textContent = 'Senha incorreta.';
       document.getElementById('login-pwd').value = '';
@@ -1279,6 +1281,8 @@ function checkAuth() {
     if (sessionStorage.getItem('finctrl_auth') === '1') {
       document.getElementById('login-overlay').classList.add('hidden');
       document.getElementById('main-shell').style.display = 'grid';
+      fetchEntries();
+      fetchEnvelopes();
     } else {
       document.getElementById('login-overlay').classList.remove('hidden');
       document.getElementById('main-shell').style.display = 'none';
@@ -1292,8 +1296,8 @@ function checkAuth() {
 document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('aporte-date').value=new Date().toISOString().split('T')[0];
 updateCats();
-checkAuth();
 loadConfig();
+checkAuth();
 fetchEntries();
 fetchEnvelopes();
 </script>
