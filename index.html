@@ -330,6 +330,29 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .uf-btn.active { background: var(--bg4); color: var(--text); border: 1px solid var(--border2); }
 .uf-select { display: none; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-size: 12px; font-family: var(--font); font-weight: 500; padding: 5px 10px; outline: none; cursor: pointer; }
 
+
+/* USER BADGE */
+.user-badge {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 4px 10px 4px 5px;
+  cursor: pointer; transition: all .15s; user-select: none;
+}
+.user-badge:hover { background: var(--bg4); border-color: var(--border2); }
+.user-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.user-badge-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.user-badge-hint { font-size: 10px; color: var(--text3); }
+@media (max-width: 768px) {
+  .user-badge-hint { display: none; }
+  .user-badge { padding: 3px 8px 3px 4px; }
+  .user-badge-name { font-size: 11px; }
+  .user-avatar { width: 20px; height: 20px; font-size: 10px; }
+}
+
 </style>
 </head>
 <body>
@@ -368,6 +391,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </select>
       <span class="sync-dot" id="sync-dot"></span>
       <span class="sync-label" id="sync-label">verificando...</span>
+      <div class="user-badge" id="user-badge" onclick="confirmLogout()"></div>
     </div>
   </header>
 
@@ -785,6 +809,26 @@ function fmt(v){return'R$\u00a0'+Math.abs(v).toLocaleString('pt-BR',{minimumFrac
 function fmtK(v){return Math.abs(v)>=1000?'R$\u00a0'+(v/1000).toFixed(1).replace('.',',')+'k':'R$\u00a0'+Math.abs(v).toFixed(0);}
 function nowTime(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 
+function renderUserBadge() {
+  const badge = document.getElementById('user-badge');
+  if (!badge) return;
+  const color = usuarioLogado === 'Gabriel' ? '#5b9cf6' : usuarioLogado === 'Jessica' ? '#c084fc' : '#2dd4a0';
+  const initial = usuarioLogado ? usuarioLogado[0].toUpperCase() : '?';
+  badge.innerHTML = `
+    <div class="user-avatar" style="background:${color}20;color:${color}">${initial}</div>
+    <div>
+      <div class="user-badge-name">${usuarioLogado}</div>
+      <div class="user-badge-hint">sair</div>
+    </div>`;
+}
+
+function confirmLogout() {
+  if (confirm('Sair da conta de ' + usuarioLogado + '?')) {
+    try { sessionStorage.removeItem('finctrl_auth'); sessionStorage.removeItem('finctrl_usuario'); } catch(e) {}
+    location.reload();
+  }
+}
+
 function setSyncStatus(s,label){
   const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
   if(dot) dot.className='sync-dot '+s;
@@ -1094,21 +1138,27 @@ function setWA(txt){document.getElementById('wa-input').value=txt;document.getEl
 let envelopes = [];
 let aportes = [];
 
-// Saldo acumulado de todos os meses (receita - despesa total histórico)
-function calcSaldoAcumulado() {
-  // Use ALL entries regardless of filter
-  const allEntries = state.entries;
-  const inc = allEntries.filter(e => e.type === 'income').reduce((s,e) => s+e.val, 0);
-  const exp = allEntries.filter(e => e.type === 'expense').reduce((s,e) => s+e.val, 0);
+// Saldo acumulado por usuário (ou total se 'todos')
+function calcSaldoAcumulado(usuario) {
+  const entries = usuario && usuario !== 'todos'
+    ? state.entries.filter(e => e.usuario === usuario)
+    : state.entries;
+  const inc = entries.filter(e => e.type === 'income').reduce((s,e) => s+e.val, 0);
+  const exp = entries.filter(e => e.type === 'expense').reduce((s,e) => s+e.val, 0);
   return Math.max(inc - exp, 0);
 }
 
-// Total já alocado em envelopes
-function calcTotalAlocado() {
-  return envelopes.reduce((s, env) => {
-    const envAportes = aportes.filter(a => a.envelope_id === env.id);
-    return s + envAportes.reduce((ss, a) => ss + parseFloat(a.valor), 0);
-  }, 0);
+// Total alocado por usuário em aportes
+function calcTotalAlocado(usuario) {
+  const userAportes = usuario && usuario !== 'todos'
+    ? aportes.filter(a => a.usuario === usuario)
+    : aportes;
+  return userAportes.reduce((s,a) => s + parseFloat(a.valor), 0);
+}
+
+// Disponível para aportar pelo usuário logado
+function calcDisponivel(usuario) {
+  return Math.max(calcSaldoAcumulado(usuario) - calcTotalAlocado(usuario), 0);
 }
 
 function toggleEnvForm() {
@@ -1164,12 +1214,12 @@ async function deleteEnvelope(id) {
 }
 
 async function aportar(envId, cor) {
-  const disponivel = calcSaldoAcumulado() - calcTotalAlocado();
+  const disponivel = calcDisponivel(usuarioLogado);
   const input = document.getElementById('aporte-input-' + envId);
   const val = parseFloat(input.value);
   if (!val || val <= 0) { input.focus(); return; }
   if (val > disponivel + 0.01) {
-    alert(`Saldo disponível insuficiente. Você tem ${fmt(disponivel)} para alocar.`);
+    alert(`Saldo insuficiente. ${usuarioLogado} tem ${fmt(disponivel)} disponível para alocar.`);
     return;
   }
   const btn = document.getElementById('aporte-btn-' + envId);
@@ -1227,16 +1277,17 @@ function filteredEnvelopes() {
 }
 
 function renderEnvelopes() {
-  const saldoAcum = calcSaldoAcumulado();
-  const totalAlocado = calcTotalAlocado();
-  const disponivel = Math.max(saldoAcum - totalAlocado, 0);
   const visibleEnvs = filteredEnvelopes();
 
-  // Metrics
+  // Metrics — show logged user's own disponivel
+  const saldoAcum = calcSaldoAcumulado(usuarioLogado);
+  const totalAlocado = calcTotalAlocado(usuarioLogado);
+  const disponivel = Math.max(saldoAcum - totalAlocado, 0);
+  const userLabel = usuarioLogado || 'Você';
   document.getElementById('env-metrics').innerHTML = `
-    <div class="metric-card b"><div class="metric-label">Saldo acumulado</div><div class="metric-value b">${fmt(saldoAcum)}</div><div class="metric-sub">total poupado no período</div></div>
-    <div class="metric-card a"><div class="metric-label">Alocado em reservas</div><div class="metric-value a">${fmt(totalAlocado)}</div><div class="metric-sub">distribuído nos envelopes</div></div>
-    <div class="metric-card ${disponivel > 0 ? 'g' : 'r'}"><div class="metric-label">Disponível para alocar</div><div class="metric-value ${disponivel > 0 ? 'g' : 'r'}">${fmt(disponivel)}</div><div class="metric-sub">saldo − alocado</div></div>
+    <div class="metric-card b"><div class="metric-label">Saldo de ${userLabel}</div><div class="metric-value b">${fmt(saldoAcum)}</div><div class="metric-sub">poupado no período</div></div>
+    <div class="metric-card a"><div class="metric-label">Alocado por ${userLabel}</div><div class="metric-value a">${fmt(totalAlocado)}</div><div class="metric-sub">distribuído nos envelopes</div></div>
+    <div class="metric-card ${disponivel > 0 ? 'g' : 'r'}"><div class="metric-label">Disponível — ${userLabel}</div><div class="metric-value ${disponivel > 0 ? 'g' : 'r'}">${fmt(disponivel)}</div><div class="metric-sub">saldo − alocado</div></div>
     <div class="metric-card g"><div class="metric-label">Envelopes ativos</div><div class="metric-value g">${visibleEnvs.length}</div><div class="metric-sub">reservas criadas</div></div>
   `;
 
@@ -1252,7 +1303,7 @@ function renderEnvelopes() {
     const meta = env.meta || 0;
     const pct = meta > 0 ? Math.min(saldo / meta * 100, 100) : 0;
     const falta = Math.max(meta - saldo, 0);
-    const userColor = env.usuario === 'Gabriel' ? '#5b9cf6' : env.usuario === 'Jessica' ? '#f5b849' : '#2dd4a0';
+    const userColor = env.usuario === 'Gabriel' ? '#5b9cf6' : env.usuario === 'Jessica' ? '#c084fc' : '#2dd4a0';
     const cor = env.cor;
 
     const histHtml = envAportes.slice(0,5).map(a => {
@@ -1374,6 +1425,7 @@ function checkLogin() {
       // Show welcome
       document.getElementById('login-overlay').classList.add('hidden');
       document.getElementById('main-shell').style.display = 'grid';
+      renderUserBadge();
       fetchEntries();
       fetchEnvelopes();
       syncUserForms();
@@ -1390,6 +1442,7 @@ function checkAuth() {
     if (sessionStorage.getItem('finctrl_auth') === '1') {
       document.getElementById('login-overlay').classList.add('hidden');
       document.getElementById('main-shell').style.display = 'grid';
+      renderUserBadge();
       fetchEntries();
       fetchEnvelopes();
       syncUserForms();
