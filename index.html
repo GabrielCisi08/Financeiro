@@ -314,6 +314,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   #panel-envelopes > div:nth-child(2) { display: flex !important; flex-direction: column !important; gap: 12px !important; }
   #panel-envelopes input, #panel-envelopes select { width: 100% !important; box-sizing: border-box !important; }
   #env-cards { grid-template-columns: 1fr !important; }
+  .env-action-grid { grid-template-columns: 1fr !important; }
 
   /* CHART */
   .chart-container { height: 180px !important; }
@@ -1298,7 +1299,7 @@ function renderEnvelopes() {
         ` : `<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Sem meta definida</div>`}
 
         <!-- APORTAR / RETIRAR -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <div class="env-action-grid" style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px">
           <div>
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Aportar</div>
             <div style="display:flex;gap:4px">
