@@ -984,7 +984,7 @@ function showPanel(name,btn){
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   setTimeout(renderCharts,50);
-  if(name==='envelopes') fetchEnvelopes();
+  if(name==='envelopes'){ if(!SB_URL||!SB_KEY) loadConfig(); fetchEnvelopes(); }
 }
 
 // ─── WHATSAPP PARSER ──────────────────────────────────────────────────────
@@ -1122,6 +1122,7 @@ async function fetchEnvelopes() {
       fetch(SB_URL + '/rest/v1/envelopes?select=*&order=created_at.asc', { headers: sbHeaders() }),
       fetch(SB_URL + '/rest/v1/aportes_envelope?select=*&order=data.desc', { headers: sbHeaders() })
     ]);
+    if (!re.ok || !ra.ok) { console.error('fetchEnvelopes error:', re.status, ra.status); throw new Error('fetch failed'); }
     envelopes = await re.json();
     aportes = await ra.json();
     renderEnvelopes();
@@ -1142,6 +1143,7 @@ async function addEnvelope() {
       headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
       body: JSON.stringify({ nome, meta, cor, usuario })
     });
+    if (!r.ok) { const err = await r.text(); console.error('Envelope error:', r.status, err); throw new Error(r.status); }
     const [saved] = await r.json();
     envelopes.push(saved);
     document.getElementById('env-nome').value = '';
@@ -1178,6 +1180,7 @@ async function aportar(envId, cor) {
       headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
       body: JSON.stringify({ envelope_id: envId, valor: val, data: today, descricao: 'Aporte', usuario: usuarioLogado })
     });
+    if (!r.ok) { const err = await r.text(); console.error('Aporte error:', r.status, err); throw new Error(r.status); }
     const [saved] = await r.json();
     aportes.unshift(saved);
     input.value = '';
@@ -1202,6 +1205,7 @@ async function retirar(envId) {
       headers: { ...sbHeaders(), 'Prefer': 'return=representation' },
       body: JSON.stringify({ envelope_id: envId, valor: -val, data: today, descricao: 'Retirada', usuario: usuarioLogado })
     });
+    if (!r.ok) { const err = await r.text(); console.error('Retirada error:', r.status, err); throw new Error(r.status); }
     const [saved] = await r.json();
     aportes.unshift(saved);
     input.value = '';
