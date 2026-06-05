@@ -297,6 +297,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   .login-box { width: 90%; padding: 28px 20px; }
 }
 
+
+/* USER FILTER */
+.user-filter { display: flex; gap: 4px; background: var(--bg3); border-radius: 8px; padding: 3px; }
+.uf-btn { background: none; border: none; color: var(--text2); font-size: 12px; font-family: var(--font); font-weight: 500; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.uf-btn:hover { color: var(--text); }
+.uf-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+/* USER BADGE */
+.badge.gabriel { background: rgba(91,156,246,0.15); color: #5b9cf6; }
+.badge.jessica { background: rgba(245,184,73,0.15); color: #f5b849; }
+
+@media (max-width: 768px) {
+  .user-filter { gap: 2px; padding: 2px; }
+  .uf-btn { font-size: 11px; padding: 3px 7px; }
+}
 </style>
 </head>
 <body>
@@ -321,6 +336,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <button onclick="changeMonth(-1)">&#8249;</button>
         <span class="month-label" id="month-label"></span>
         <button onclick="changeMonth(1)">&#8250;</button>
+      </div>
+      <div class="user-filter" id="user-filter">
+        <button class="uf-btn active" onclick="setFiltro('todos',this)">Todos</button>
+        <button class="uf-btn" onclick="setFiltro('Gabriel',this)">Gabriel</button>
+        <button class="uf-btn" onclick="setFiltro('Jessica',this)">Jessica</button>
       </div>
       <span class="sync-dot" id="sync-dot"></span>
       <span class="sync-label" id="sync-label">verificando...</span>
@@ -379,6 +399,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <div class="card">
           <div class="card-title">Novo lançamento</div>
           <div class="form-grid">
+            <div class="form-group">
+              <label>Quem?</label>
+              <select id="e-usuario">
+                <option value="Gabriel">Gabriel</option>
+                <option value="Jessica">Jessica</option>
+              </select>
+            </div>
             <div class="form-group">
               <label>Tipo</label>
               <select id="e-type" onchange="updateCats()">
@@ -542,7 +569,7 @@ const CAT_MAP={
 
 // ─── STATE ────────────────────────────────────────────────────────────────
 let SB_URL='', SB_KEY='';
-let state={year:new Date().getFullYear(),month:new Date().getMonth(),entries:[]};
+let state={year:new Date().getFullYear(),month:new Date().getMonth(),entries:[],filtroUsuario:'todos'};
 let barChart=null,lineChart=null;
 
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────
@@ -590,7 +617,7 @@ async function fetchEntries(){
     const r=await fetch(SB_URL+'/rest/v1/lancamentos?select=*&order=date.desc',{headers:sbHeaders()});
     if(!r.ok) throw new Error(r.status);
     const data=await r.json();
-    state.entries=data.map(d=>({id:d.id,type:d.type,cat:d.cat,desc:d.descricao,val:parseFloat(d.val),date:d.date}));
+    state.entries=data.map(d=>({id:d.id,type:d.type,cat:d.cat,desc:d.descricao,val:parseFloat(d.val),date:d.date,usuario:d.usuario||'Gabriel'}));
     setSyncStatus('ok','sincronizado');
     document.getElementById('cfg-banner').classList.add('hidden');
     render();
@@ -609,7 +636,7 @@ async function insertEntry(entry){
   }
   setSyncStatus('loading','salvando...');
   try{
-    const body={type:entry.type,cat:entry.cat,descricao:entry.desc,val:entry.val,date:entry.date};
+    const body={type:entry.type,cat:entry.cat,descricao:entry.desc,val:entry.val,date:entry.date,usuario:entry.usuario||'Gabriel'};
     const r=await fetch(SB_URL+'/rest/v1/lancamentos',{
       method:'POST',headers:{...sbHeaders(),'Prefer':'return=representation'},
       body:JSON.stringify(body)
@@ -675,11 +702,24 @@ function setSyncStatus(state,label){
   lbl.textContent=label;
 }
 
+function setFiltro(f, btn) {
+  state.filtroUsuario = f;
+  document.querySelectorAll('.uf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function filteredByUser(entries) {
+  if (state.filtroUsuario === 'todos') return entries;
+  return entries.filter(e => e.usuario === state.filtroUsuario);
+}
+
 function monthEntries(y,m){
-  return state.entries.filter(e=>{
+  const base = state.entries.filter(e=>{
     const d=new Date(e.date+'T12:00:00');
     return d.getFullYear()===y&&d.getMonth()===m;
   });
+  return filteredByUser(base);
 }
 function monthTotals(y,m){
   const ee=monthEntries(y,m);
@@ -730,7 +770,7 @@ function renderList(){
       <div class="entry-dot" style="background:${e.type==='income'?'var(--green)':'var(--red)'}"></div>
       <div class="entry-info">
         <div class="entry-name">${e.desc}</div>
-        <div class="entry-meta"><span class="badge ${e.type==='income'?'inc':'exp'}">${e.type==='income'?'receita':'despesa'}</span> &nbsp;${e.cat} · ${new Date(e.date+'T12:00:00').toLocaleDateString('pt-BR')}</div>
+        <div class="entry-meta"><span class="badge ${e.type==='income'?'inc':'exp'}">${e.type==='income'?'receita':'despesa'}</span> <span class="badge ${(e.usuario||'gabriel').toLowerCase()}">${e.usuario||'Gabriel'}</span> &nbsp;${e.cat} · ${new Date(e.date+'T12:00:00').toLocaleDateString('pt-BR')}</div>
       </div>
       <span class="entry-amount" style="color:${e.type==='income'?'var(--green)':'var(--red)'}">${e.type==='income'?'+':'-'}${fmt(e.val)}</span>
       <button class="entry-del" onclick="delEntry(${e.id})" title="Remover">×</button>
@@ -820,10 +860,11 @@ async function addEntry(){
   const desc=document.getElementById('e-desc').value.trim();
   const val=parseFloat(document.getElementById('e-val').value);
   const date=document.getElementById('e-date').value;
+  const usuario=document.getElementById('e-usuario').value;
   if(!desc||!val||val<=0||!date){alert('Preencha todos os campos.');return;}
   const btn=document.getElementById('btn-add');
   btn.disabled=true;btn.textContent='Salvando...';
-  const entry={id:Date.now(),type,cat,desc,val,date};
+  const entry={id:Date.now(),type,cat,desc,val,date,usuario};
   state.entries.push(entry);
   await insertEntry(entry);
   render();
