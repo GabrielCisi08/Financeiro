@@ -816,7 +816,7 @@ function renderUserBadge() {
   if (!badge) return;
   const color = usuarioLogado === 'Gabriel' ? '#5b9cf6' : usuarioLogado === 'Jessica' ? '#c084fc' : '#2dd4a0';
   const initial = usuarioLogado ? usuarioLogado[0].toUpperCase() : '?';
-  badge.innerHTML = `<div class="user-avatar" style="background:${color}25;color:${color};border:1.5px solid ${color}40">${initial}</div>`;
+  badge.innerHTML = `<div class="user-avatar" style="background:${color};color:#fff">${initial}</div>`;
   badge.title = usuarioLogado + ' — clique para sair';
 }
 
