@@ -337,6 +337,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="login-box">
     <div class="login-logo">fin<span>.</span>ctrl</div>
     <div class="login-sub">Dashboard financeiro familiar</div>
+    <div id="login-hint" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
     <input class="login-input" id="login-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLogin()"/>
     <button class="login-btn" onclick="checkLogin()">Entrar</button>
     <div class="login-err" id="login-err"></div>
@@ -992,7 +993,7 @@ async function addEntry(){
   const desc=document.getElementById('e-desc').value.trim();
   const val=parseFloat(document.getElementById('e-val').value);
   const date=document.getElementById('e-date').value;
-  const usuario=document.getElementById('e-usuario').value;
+  const usuario=document.getElementById('e-usuario').value || usuarioLogado;
   if(!desc||!val||val<=0||!date){alert('Preencha todos os campos.');return;}
   const btn=document.getElementById('btn-add');
   btn.disabled=true;btn.textContent='Salvando...';
@@ -1026,8 +1027,17 @@ function detectCategory(text){
   return'Outros';
 }
 
+function detectUsuario(text) {
+  const lower = text.toLowerCase();
+  if (/\bjessica\b/.test(lower)) return 'Jessica';
+  if (/\bgabriel\b/.test(lower)) return 'Gabriel';
+  // fallback: use logged user
+  return usuarioLogado || 'Gabriel';
+}
+
 function parseWA(msg){
   const lower=msg.toLowerCase().trim();
+
   if(lower==='saldo'||lower==='balanço'){
     const t=monthTotals(state.year,state.month);
     return{type:'query',reply:`💰 *Saldo de ${MONTHS[state.month]}*\n\n✅ Receitas: ${fmt(t.inc)}\n❌ Despesas: ${fmt(t.exp)}\n\n${t.bal>=0?'🟢':'🔴'} Saldo: ${t.bal<0?'-':''}${fmt(Math.abs(t.bal))}`};
@@ -1040,39 +1050,56 @@ function parseWA(msg){
   if(lower==='gastos'||lower==='últimos'){
     const ee=monthEntries(state.year,state.month).filter(e=>e.type==='expense').slice(-5).reverse();
     if(!ee.length)return{type:'query',reply:'Nenhuma despesa registrada este mês.'};
-    return{type:'query',reply:'🧾 *Últimas despesas:*\n'+ee.map(e=>`• ${e.desc}: ${fmt(e.val)}`).join('\n')};
+    return{type:'query',reply:'🧾 *Últimas despesas:*\n'+ee.map(e=>`• [${e.usuario}] ${e.desc}: ${fmt(e.val)}`).join('\n')};
   }
-  const expPat=/(gastei|paguei|comprei|despesa de)\s+r?\$?\s*(\d+[.,]?\d*)\s+(?:no|na|em|com|de|pelo|pela|por)?\s*(.+)/i;
-  const incPat=/(recebi|ganhei|entrou|receita de|salário de)\s+r?\$?\s*(\d+[.,]?\d*)\s+(?:de|do|da|por|como)?\s*(.+)/i;
+  if(lower==='gabriel'||lower==='jessica'){
+    const u=lower==='gabriel'?'Gabriel':'Jessica';
+    const ee=monthEntries(state.year,state.month);
+    const inc=ee.filter(e=>e.type==='income'&&e.usuario===u).reduce((s,e)=>s+e.val,0);
+    const exp=ee.filter(e=>e.type==='expense'&&e.usuario===u).reduce((s,e)=>s+e.val,0);
+    return{type:'query',reply:`👤 *${u} — ${MONTHS[state.month]}*\n\n✅ Receitas: ${fmt(inc)}\n❌ Despesas: ${fmt(exp)}\n\n${inc-exp>=0?'🟢':'🔴'} Saldo: ${fmt(Math.abs(inc-exp))}`};
+  }
+
+  // Patterns: optional name prefix/suffix
+  // "jessica gastou 150 no ifood" / "gastei 150 no ifood jessica" / "gastei 150 no ifood"
+  const expPat=/(gastei|paguei|comprei|despesa de|gastou|pagou)\s+r?\$?\s*(\d+[.,]?\d*)\s+(?:no|na|em|com|de|pelo|pela|por)?\s*(.+)/i;
+  const incPat=/(recebi|ganhei|entrou|receita de|salário de|recebeu|ganhou)\s+r?\$?\s*(\d+[.,]?\d*)\s+(?:de|do|da|por|como)?\s*(.+)/i;
   const altExp=/^(\d+[.,]?\d*)\s+(?:no|na|em|com)\s+(.+)/i;
+
   let m;
   const today=new Date();
   const date=`${state.year}-${String(state.month+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const usuario=detectUsuario(msg);
+
   if((m=msg.match(expPat))){
     const val=parseFloat(m[2].replace(',','.'));
-    const desc=m[3].trim();const cat=detectCategory(desc);
-    const entry={id:Date.now(),type:'expense',cat,desc,val,date};
+    // Remove name from desc if present
+    const desc=m[3].trim().replace(/\b(gabriel|jessica)\b/gi,'').trim().replace(/,\s*$/,'').trim();
+    const cat=detectCategory(desc);
+    const entry={id:Date.now(),type:'expense',cat,desc,val,date,usuario};
     state.entries.push(entry);
     insertEntry(entry).then(()=>render());
-    return{type:'expense',reply:`✅ *Despesa registrada!*\n💸 ${fmt(val)} — ${desc}\n📂 ${cat}`};
+    return{type:'expense',reply:`✅ *Despesa registrada!*\n💸 ${fmt(val)} — ${desc}\n📂 ${cat} · 👤 ${usuario}`};
   }
   if((m=msg.match(incPat))){
     const val=parseFloat(m[2].replace(',','.'));
-    const desc=m[3].trim();const cat=detectCategory(desc);
-    const entry={id:Date.now(),type:'income',cat,desc,val,date};
+    const desc=m[3].trim().replace(/\b(gabriel|jessica)\b/gi,'').trim().replace(/,\s*$/,'').trim();
+    const cat=detectCategory(desc);
+    const entry={id:Date.now(),type:'income',cat,desc,val,date,usuario};
     state.entries.push(entry);
     insertEntry(entry).then(()=>render());
-    return{type:'income',reply:`✅ *Receita registrada!*\n💰 ${fmt(val)} — ${desc}\n📂 ${cat}`};
+    return{type:'income',reply:`✅ *Receita registrada!*\n💰 ${fmt(val)} — ${desc}\n📂 ${cat} · 👤 ${usuario}`};
   }
   if((m=msg.match(altExp))){
     const val=parseFloat(m[1].replace(',','.'));
-    const desc=m[2].trim();const cat=detectCategory(desc);
-    const entry={id:Date.now(),type:'expense',cat,desc,val,date};
+    const desc=m[2].trim().replace(/\b(gabriel|jessica)\b/gi,'').trim();
+    const cat=detectCategory(desc);
+    const entry={id:Date.now(),type:'expense',cat,desc,val,date,usuario};
     state.entries.push(entry);
     insertEntry(entry).then(()=>render());
-    return{type:'expense',reply:`✅ *Despesa registrada!*\n💸 ${fmt(val)} — ${desc}\n📂 ${cat}`};
+    return{type:'expense',reply:`✅ *Despesa registrada!*\n💸 ${fmt(val)} — ${desc}\n📂 ${cat} · 👤 ${usuario}`};
   }
-  return{type:'error',reply:`Não entendi. Tente:\n• "gastei 50 no mercado"\n• "recebi 3000 de salário"\n• "saldo"`};
+  return{type:'error',reply:`Não entendi. Tente:\n• "gastei 50 no mercado"\n• "jessica pagou 200 no aluguel"\n• "gabriel recebeu 5000 de salário"\n• "saldo" · "gabriel" · "jessica"`};
 }
 
 function addWAMsg(text,side,cls=''){
@@ -1251,7 +1278,11 @@ function renderEnvelopes() {
 // ─── INIT ─────────────────────────────────────────────────────────────────
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────
-const PWD_HASH = 'ab24b37ee369bb312666afc6f60816ff95a0187213f00266859a59de635b13e3';
+const PWD_MAP = {
+  'ca4f0331e387a6e8e469269e61568b8c2e6d0d0833ab4223341af3e31742dede': 'Gabriel',
+  '3ae544ff7fc546427f7e2b8dba739f40f2ac84dd168e5461197059c172c58d6f': 'Jessica'
+};
+let usuarioLogado = 'Gabriel';
 
 function strToHash(str) {
   // SHA-256 via SubtleCrypto
@@ -1264,12 +1295,26 @@ function strToHash(str) {
 function checkLogin() {
   const val = document.getElementById('login-pwd').value;
   strToHash(val).then(hash => {
-    if (hash === PWD_HASH) {
-      try { sessionStorage.setItem('finctrl_auth','1'); } catch(e) {}
+    const usuario = PWD_MAP[hash];
+    if (usuario) {
+      usuarioLogado = usuario;
+      try {
+        sessionStorage.setItem('finctrl_auth','1');
+        sessionStorage.setItem('finctrl_usuario', usuario);
+      } catch(e) {}
+      // Set filter to logged user
+      state.filtroUsuario = usuario;
+      document.querySelectorAll('.uf-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent === usuario);
+      });
+      const mob = document.getElementById('uf-mobile');
+      if(mob) mob.value = usuario;
+      // Show welcome
       document.getElementById('login-overlay').classList.add('hidden');
       document.getElementById('main-shell').style.display = 'grid';
       fetchEntries();
       fetchEnvelopes();
+      syncUserForms();
     } else {
       document.getElementById('login-err').textContent = 'Senha incorreta.';
       document.getElementById('login-pwd').value = '';
@@ -1285,6 +1330,7 @@ function checkAuth() {
       document.getElementById('main-shell').style.display = 'grid';
       fetchEntries();
       fetchEnvelopes();
+      syncUserForms();
     } else {
       document.getElementById('login-overlay').classList.remove('hidden');
       document.getElementById('main-shell').style.display = 'none';
@@ -1297,6 +1343,13 @@ function checkAuth() {
 
 document.getElementById('e-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('aporte-date').value=new Date().toISOString().split('T')[0];
+// Pre-select logged user in forms
+function syncUserForms(){
+  const sel=document.getElementById('e-usuario');
+  const aps=document.getElementById('aporte-usuario');
+  if(sel) sel.value=usuarioLogado;
+  if(aps) aps.value=usuarioLogado;
+}
 updateCats();
 loadConfig();
 checkAuth();
