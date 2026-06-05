@@ -316,6 +316,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   /* LOGIN */
   .login-box { width: 92% !important; padding: 28px 20px !important; }
 }
+
+/* USER FILTER */
+.user-filter { display: flex; gap: 3px; background: var(--bg3); border-radius: 8px; padding: 3px; }
+.uf-btn { background: none; border: none; color: var(--text3); font-size: 12px; font-family: var(--font); font-weight: 500; padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.uf-btn:hover { color: var(--text2); }
+.uf-btn.active { background: var(--bg4); color: var(--text); border: 1px solid var(--border2); }
+.uf-select { display: none; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-size: 12px; font-family: var(--font); font-weight: 500; padding: 5px 10px; outline: none; cursor: pointer; }
+
 </style>
 </head>
 <body>
@@ -346,10 +354,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <button class="uf-btn" onclick="setFiltro('Gabriel',this)">Gabriel</button>
         <button class="uf-btn" onclick="setFiltro('Jessica',this)">Jessica</button>
       </div>
-      <select class="uf-select" id="user-filter-mobile" onchange="setFiltroMobile(this)">
-        <option value="todos">👥 Todos</option>
-        <option value="Gabriel">👤 Gabriel</option>
-        <option value="Jessica">👤 Jessica</option>
+      <select class="uf-select" id="uf-mobile" onchange="setFiltroSelect(this)">
+        <option value="todos">Todos</option>
+        <option value="Gabriel">Gabriel</option>
+        <option value="Jessica">Jessica</option>
       </select>
       <span class="sync-dot" id="sync-dot"></span>
       <span class="sync-label" id="sync-label">verificando...</span>
@@ -806,16 +814,16 @@ function setFiltro(f, btn) {
   state.filtroUsuario = f;
   document.querySelectorAll('.uf-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('user-filter-mobile').value = f;
+  const mob = document.getElementById('uf-mobile');
+  if (mob) mob.value = f;
   render();
   renderEnvelopes();
 }
 
-function setFiltroMobile(sel) {
+function setFiltroSelect(sel) {
   state.filtroUsuario = sel.value;
-  document.querySelectorAll('.uf-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.uf-btn').forEach(b => {
-    if (b.textContent.toLowerCase() === sel.value || (sel.value==='todos' && b.textContent==='Todos')) b.classList.add('active');
+    b.classList.toggle('active', b.textContent === sel.options[sel.selectedIndex].text);
   });
   render();
   renderEnvelopes();
